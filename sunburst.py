@@ -97,7 +97,7 @@ def update_graph(new_max_level, n_clicks, new_root):
                 full_path, name, parent, dir_size, hover)
         change = True
     if change:
-        return go.Figure(go.Sunburst(ids=directories['full-path'], labels=directories['directory'], parents=directories['parent'], values=directories['value'], hoverinfo="text", hovertext=directories['hover'], maxdepth=max_level, i))
+        return go.Figure(go.Sunburst(ids=directories['full-path'], labels=directories['directory'], parents=directories['parent'], values=directories['value'], hoverinfo="text", hovertext=directories['hover'], maxdepth=max_level, ))
 
 
 @app.callback(Output('sunburst-root', 'value'), Input('sun', 'clickData'), prevent_initial_call=True)

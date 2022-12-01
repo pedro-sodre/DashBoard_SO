@@ -29,18 +29,14 @@ def get_processor_name():
 def get_used_ram():
     return psutil.virtual_memory().used / (1000000000)
 
-
 def get_total_ram():
     return psutil.virtual_memory().total / (1000000000)
-
 
 def get_cpu_usage():
     return psutil.cpu_percent(interval=0)
 
-
 def get_per_cpu_usage():
     return psutil.cpu_percent(interval=0, percpu=True)
-
 
 def add_cpu_usage_to_dataframe(df, time):
     index = 0
@@ -53,11 +49,10 @@ def add_cpu_usage_to_dataframe(df, time):
         df.loc[index] = [time, f"cpu {x}", per_cpu_usage[x]]
         index += 1
 
-
 time_ram = deque(maxlen=30)
 used_ram = deque(maxlen=30)
-time_ram = [1]
-used_ram = [get_used_ram()]
+time_ram.append(1)
+used_ram.append(get_used_ram())
 
 n_cpus = len(get_per_cpu_usage())
 
@@ -69,39 +64,61 @@ cpu_usage = pd.DataFrame(columns=["time", "cpu", "usage"])
 
 add_cpu_usage_to_dataframe(cpu_usage, 0)
 
-recursion_level = 4
+max_depth = 4
 max_level = 3
+directories = None
+
+def make_disc_df(new_root, new_max_depth):
+    global root
+    global max_depth
+    global directories
+
+    if directories != None and new_root == root and new_max_depth == max_depth:
+        return directories
+    
+    root = new_root
+    max_depth = new_max_depth
+    
+    command = f"du -bd {max_depth} {root}"
+    command_data = subprocess.run(
+        command, shell=True, capture_output=True).stdout.decode().strip()
+
+    directories = pd.DataFrame(
+        columns=['full-path', 'directory', 'parent', 'value', 'hover'])
+
+    for dir in command_data.split('\n'):
+        dir_data = dir.split("\t")
+        dir_size = int(dir_data[0])
+        hover = None
+        if dir_size > 1e12:
+            hover = f"{round(dir_size/1e12, 2)}TB"
+        elif dir_size > 1e9:
+            hover = f"{round(dir_size/1e9, 2)}GB"
+        elif dir_size > 1e6:
+            hover = f"{round(dir_size/1e6, 2)}MB"
+        elif dir_size > 1e3:
+            hover = f"{round(dir_size/1e3, 2)}KB"
+        else:
+            hover = f"{dir_size}B"
+        full_path = dir_data[1]
+        index_last_slash = full_path.rindex("/")
+        name = full_path[index_last_slash + 1:]
+        parent = None
+        if (full_path != root):
+            parent = full_path[:index_last_slash]
+        directories.loc[len(directories)] = (
+            full_path, name, parent, dir_size, hover)
+    return directories
+
 root = subprocess.check_output("echo ~", shell=True).decode().strip()
 
-command = f"du -bd {recursion_level} {root}"
-command_data = subprocess.run(
-    command, shell=True, capture_output=True).stdout.decode().strip()
-directories = pd.DataFrame(
-    columns=['full-path', 'directory', 'parent', 'value', 'hover'])
+directories = make_disc_df(root, max_depth)
 
-for dir in command_data.split('\n'):
-    dir_data = dir.split("\t")
-    dir_size = int(dir_data[0])
-    hover = None
-    if dir_size > 1e12:
-        hover = f"{round(dir_size/1e12, 2)}TB"
-    elif dir_size > 1e9:
-        hover = f"{round(dir_size/1e9, 2)}GB"
-    elif dir_size > 1e6:
-        hover = f"{round(dir_size/1e6, 2)}MB"
-    elif dir_size > 1e3:
-        hover = f"{round(dir_size/1e3, 2)}KB"
-    else:
-        hover = f"{dir_size}B"
-    full_path = dir_data[1]
-    index_last_slash = full_path.rindex("/")
-    name = full_path[index_last_slash + 1:]
-    parent = None
-    if (full_path != root):
-        parent = full_path[:index_last_slash]
-    directories.loc[len(directories)] = (
-        full_path, name, parent, dir_size, hover)
-
+def make_disc_fig(max_level, data = directories):
+    return  go.Figure(go.Sunburst(
+        ids=data['full-path'], labels=data['directory'],
+        parents=data['parent'], values=data['value'], hoverinfo="text", 
+        hovertext=data['hover'], maxdepth=max_level))
 
 app = dash.Dash(__name__)
 app.layout = html.Div([
@@ -123,14 +140,11 @@ app.layout = html.Div([
     html.Div([
     dcc.Input(id="sunburst-root", type='text', placeholder=root),
     dcc.Input(id="sunburst-max-level", type='number',
-              placeholder='3', min=2, max=recursion_level, step=1),
+              placeholder='3', min=2, max=max_depth, step=1),
     html.Button('Nova raiz', id='sunburst-new-root', n_clicks=0),
-    dcc.Graph(id="sun", figure= go.Figure(go.Sunburst(
-    ids=directories['full-path'], labels=directories['directory'],
-    parents=directories['parent'], values=directories['value'], hoverinfo="text", hovertext=directories['hover'], maxdepth=max_level)))
+    dcc.Graph(id="sun", figure=make_disc_fig(max_level, directories))
     ])
 ])
-
 
 @app.callback(Output('ram-usage', 'figure'), [Input('graph-update', 'n_intervals')])
 def update_graph(n_intervals):
@@ -152,7 +166,6 @@ def update_graph(n_intervals):
             yaxis=dict(range=[0, ceil(get_total_ram())]),
         )
     }
-
 
 @app.callback(Output('cpu-usage', 'figure'), [
     Input('graph-update', 'n_intervals'),
@@ -180,39 +193,11 @@ def update_graph(new_max_level, n_clicks, new_root):
     global directories
     change = False
 
-    if ctx.triggered_id == 'sunburst-max-level' and new_max_level != None and new_max_level > 0 and new_max_level <= recursion_level:
+    if ctx.triggered_id == 'sunburst-max-level' and new_max_level != None and new_max_level > 0 and new_max_level <= max_depth:
         max_level = new_max_level
         change = True
 
     if ctx.triggered_id == 'sunburst-new-root' and new_root != None and os.path.isdir(new_root):
-        command = f"du -bd {recursion_level} {root}"
-        command_data = subprocess.run(
-            command, shell=True, capture_output=True).stdout.decode().strip()
-        directories = pd.DataFrame(
-            columns=['full-path', 'directory', 'parent', 'value', 'hover'])
-
-        for dir in command_data.split('\n'):
-            dir_data = dir.split("\t")
-            dir_size = int(dir_data[0])
-            hover = None
-            if dir_size > 1e12:
-                hover = f"{round(dir_size/1e12, 2)}TB"
-            elif dir_size > 1e9:
-                hover = f"{round(dir_size/1e9, 2)}GB"
-            elif dir_size > 1e6:
-                hover = f"{round(dir_size/1e6, 2)}MB"
-            elif dir_size > 1e3:
-                hover = f"{round(dir_size/1e3, 2)}KB"
-            else:
-                hover = f"{dir_size}B"
-            full_path = dir_data[1]
-            index_last_slash = full_path.rindex("/")
-            name = full_path[index_last_slash + 1:]
-            parent = None
-            if (full_path != root):
-                parent = full_path[:index_last_slash]
-            directories.loc[len(directories)] = (
-                full_path, name, parent, dir_size, hover)
         change = True
     if change:
         return go.Figure(go.Sunburst(ids=directories['full-path'], labels=directories['directory'], parents=directories['parent'], values=directories['value'], hoverinfo="text", hovertext=directories['hover'], maxdepth=max_level, ))

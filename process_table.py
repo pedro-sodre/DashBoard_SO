@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-
+import time
 
 import dash
 from dash import Output, Input, State, dcc, html, ctx, dash_table
@@ -14,18 +14,28 @@ def get_process_table():
 
 
 def command_process_csv():
-    cmd = "top -b -n 3 | sed -n '7, 50{s/^ *//;s/ *$//;s/  */;/gp;};50q' >> out.csv"
+    cmd = "top -b -n 3 | sed -n '7, 50{s/^ *//;s/ *$//;s/  */;/gp;};50q' > process.csv"
     os.system(cmd)
 
-command_process_csv()
+#command_process_csv()
 df = pd.read_csv("process.csv", sep=';')
 
 def get_component(app):
+    dcc.Interval(
+        id='interval_component',
+        interval=1000,
+        n_intervals=0
+    ),
+    @app.callback(Output('process_table', 'data'), [Input('interval_component', 'n_intervals')])
+    def update_table(n):
+        command_process_csv()
+        time.sleep(5)
+        df = pd.read_csv("process.csv", sep=';')
+        return df
     return html.Div([
         html.H1('Tabela de processos'),
-        dcc.Dropdown(value=10, clearable=False, style={'width': '35%'},
-                     options=[10, 25, 50, 100]),
         dash_table.DataTable(
+            id = "process_table",
             columns=[
                 {'name': 'PID', 'id': 'PID', 'type': 'numeric'},
                 {'name': 'USER', 'id': 'USER', 'type': 'text'},
@@ -50,3 +60,10 @@ def get_component(app):
                 'textOverflow': 'ellipsis',
             })
     ])
+
+app = dash.Dash(__name__)
+app.layout = get_component(app)
+
+
+if __name__ == "__main__":
+    app.run_server(debug=True)

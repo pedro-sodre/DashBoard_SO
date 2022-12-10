@@ -14,6 +14,11 @@ from collections import deque
 
 import pandas as pd
 
+if platform.system() == "Windows":
+    slash = "\\"
+elif platform.system() == "Linux":
+    command = f"du -bd {max_depth} {root}"
+
 # Pega o nome do processador (dependendo do sistema operacional é diferente)
 def get_processor_name():
     if platform.system() == "Windows":
@@ -64,22 +69,26 @@ cpu_usage = pd.DataFrame(columns=["time", "cpu", "usage"])
 
 add_cpu_usage_to_dataframe(cpu_usage, 0)
 
-max_depth = 4
+max_depth = 3
 max_level = 3
-directories = None
+directories = pd.DataFrame()
 
 def make_disc_df(new_root, new_max_depth):
     global root
     global max_depth
     global directories
 
-    if directories != None and new_root == root and new_max_depth == max_depth:
+    if not directories.empty and new_root == root and new_max_depth == max_depth:
         return directories
     
     root = new_root
     max_depth = new_max_depth
     
-    command = f"du -bd {max_depth} {root}"
+    if platform.system() == "Windows":
+        command = f"du -l {max_depth} {root}"
+    elif platform.system() == "Linux":
+        command = f"du -bd {max_depth} {root}"
+
     command_data = subprocess.run(
         command, shell=True, capture_output=True).stdout.decode().strip()
 
@@ -87,8 +96,12 @@ def make_disc_df(new_root, new_max_depth):
         columns=['full-path', 'directory', 'parent', 'value', 'hover'])
 
     for dir in command_data.split('\n'):
-        dir_data = dir.split("\t")
-        dir_size = int(dir_data[0])
+        dir_data = dir.split()
+        try:
+            dir_size = int(dir_data[0].replace(".", ""))
+        except:
+            continue
+
         hover = None
         if dir_size > 1e12:
             hover = f"{round(dir_size/1e12, 2)}TB"
@@ -101,16 +114,20 @@ def make_disc_df(new_root, new_max_depth):
         else:
             hover = f"{dir_size}B"
         full_path = dir_data[1]
-        index_last_slash = full_path.rindex("/")
+        index_last_slash = full_path.rindex(slash)
         name = full_path[index_last_slash + 1:]
         parent = None
         if (full_path != root):
             parent = full_path[:index_last_slash]
         directories.loc[len(directories)] = (
             full_path, name, parent, dir_size, hover)
+    print (directories)
     return directories
 
-root = subprocess.check_output("echo ~", shell=True).decode().strip()
+if platform.system() == "Windows":
+    root = os.path.expanduser("~")
+elif platform.system() == "Linux":
+    root = subprocess.check_output("echo ~", shell=True).decode().strip()
 
 directories = make_disc_df(root, max_depth)
 
@@ -197,8 +214,13 @@ def update_graph(new_max_level, n_clicks, new_root):
         max_level = new_max_level
         change = True
 
+    print(ctx.triggered_id)
+    print(new_root)
+    print (os.path.isdir(new_root))
+
     if ctx.triggered_id == 'sunburst-new-root' and new_root != None and os.path.isdir(new_root):
         change = True
+        make_disc_df(new_root, max_depth)
     if change:
         return go.Figure(go.Sunburst(ids=directories['full-path'], labels=directories['directory'], parents=directories['parent'], values=directories['value'], hoverinfo="text", hovertext=directories['hover'], maxdepth=max_level, ))
 
@@ -206,12 +228,13 @@ def update_graph(new_max_level, n_clicks, new_root):
 @app.callback(Output('sunburst-root', 'value'), Input('sun', 'clickData'), prevent_initial_call=True)
 def update_graph(clickData):
     global root
+
     if clickData != None:
         new_root = clickData["points"][0]["id"]
         if new_root != root:
             root = new_root
         else:
-            root = new_root[:new_root.rindex("/")]
+            root = new_root[:new_root.rindex(slash)]
         return root
 
 if __name__ == "__main__":

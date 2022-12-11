@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import subprocess
+import time
 
 import dash
 from dash import Output, Input, State, dcc, html, ctx, dash_table
@@ -19,17 +20,10 @@ def get_process_data():
     return pd.DataFrame([row.split(";") for row in rows.split('\n')], columns=columns)
 
 
-df = get_process_data()
-
-
-def _update_table():
-    return get_process_data().to_dict('records')
-
-
 def get_component(app):
     @app.callback(Output('process-table', 'data'), [Input('graph-update', 'n_intervals')])
     def update_table(n_intervals):
-        return _update_table()
+        return get_process_data().to_dict('records')
 
     @app.callback(Output('process-table', 'page_size'), [Input('page-size-dropdown', 'value')])
     def update_table(value):
@@ -62,12 +56,9 @@ def get_component(app):
                                   'id': 'TIME+', 'type': 'text'},
                                  {'name': 'COMMAND', 'id': 'COMMAND', 'type': 'text'}
                              ],
-                             data=df.to_dict('records'),
-                             filter_action='native',
-                             page_size=10,
+                             data=get_process_data().to_dict('records'),
                              style_data={
-                                 # 'width': '150px', 'minWidth': '100px', 'maxWidth': '150px',
-                                 # 'overflow': 'hidden',
+                                 'overflow': 'hidden',
                                  'textOverflow': 'ellipsis',
                              })
     ])

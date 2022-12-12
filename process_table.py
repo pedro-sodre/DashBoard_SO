@@ -15,7 +15,7 @@ def get_process_data():
 
 
 def get_component(app):
-    @app.callback(Output('process-table', 'data'), [Input('graph-update', 'n_intervals')])
+    @app.callback(Output('process-table', 'data'), [Input('process-update', 'n_intervals')])
     def update_table(n_intervals):
         return get_process_data().to_dict('records')
 
@@ -24,9 +24,15 @@ def get_component(app):
         return value
 
     return html.Div([
+        dcc.Interval(
+        id='process-update',  # ativa o update do gráfico
+        interval=3000,  # tempo de delay para cada update
+        max_intervals=-1,
+        n_intervals=0
+         ),
         html.H1('Tabela de processos'),
         dcc.Dropdown(id='page-size-dropdown', value=10, clearable=False, style={'width': '35%'},
-                     options=[10, 25, 50, 100]),
+                     options=[10, 25, 50]),
         dash_table.DataTable(id='process-table',
                              columns=[
                                  {'name': 'PID', 'id': 'PID', 'type': 'numeric'},

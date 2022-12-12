@@ -53,11 +53,17 @@ def _update_graph(cpus):
 
 
 def get_component(app):
-    @app.callback(Output('cpu-usage', 'figure'), [Input('graph-update', 'n_intervals'), Input('cpu-checklist', 'value')])
+    @app.callback(Output('cpu-usage', 'figure'), [Input('cpu-update', 'n_intervals'), Input('cpu-checklist', 'value')])
     def update_graph(n_intervals, cpus):
         return _update_graph(cpus)
 
     return html.Div([
+            dcc.Interval(
+        id='cpu-update',
+        interval=1000,  
+        max_intervals=-1,
+        n_intervals=0
+    ),
         html.H1('Utilização dos processadores (%)'),
         dcc.Checklist(id="cpu-checklist",
                       options=cpu_options, value=cpu_options),

@@ -108,6 +108,7 @@ def get_component(app):
         return _update_root_text(clickData)
 
     return html.Div([
+        html.H1('Utilização de disco'),
         dcc.Input(id="sunburst-root", type='text', placeholder=root),
         dcc.Input(id="sunburst-max-level", type='number',
                   placeholder=max_level, min=2, max=max_depth, step=1),

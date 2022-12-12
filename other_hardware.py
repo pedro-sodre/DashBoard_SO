@@ -87,7 +87,7 @@ def get_gpu():
         "lshw -numeric -C display | grep product | head -n 1", shell=True, capture_output=True).stdout.decode().strip()
 
     command_data = command_data.split('[')
-    #command_data = command_data.replace('product:', '')
+    command_data = command_data[0].split('product:')
     
-    return command_data[1].replace(']','')
+    return command_data[1] #.replace(']','')
 

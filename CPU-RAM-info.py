@@ -13,12 +13,6 @@ import terminal
 
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.layout = html.Div([
-    dcc.Interval(
-        id='graph-update',  # ativa o update do gráfico
-        interval=1000,  # tempo de delay para cada update
-        max_intervals=-1,
-        n_intervals=0
-    ),
     static_info.get_component(app),
     dbc.Row([
         dbc.Col(disc_usage.get_component(app), width=5),

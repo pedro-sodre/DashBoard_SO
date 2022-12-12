@@ -1,9 +1,5 @@
-import psutil
 import os
-import subprocess
-import pandas as pd
-from dash import Output, Input, dcc, html, ctx
-import plotly.express as px
+from dash import Output, Input, html, ctx
 
 def get_component(app):
     @app.callback(
@@ -11,12 +7,10 @@ def get_component(app):
         Input('terminal-button', 'n_clicks'))
     def openTerminal(btn1):
         if("terminal-button" == ctx.triggered_id):
-            #os.popen('gnome-terminal')
-            #print("button clicked")
-            subprocess.run("gnome-terminal", shell=True, capture_output=True)
-            return html.Div("Button clicked")
+            os.popen('konsole')
+            #subprocess.run("gnome-terminal", shell=True, capture_output=True)
         return None
     
     return html.Div([html.Button('>_', id='terminal-button', n_clicks=0), 
                     html.Div(id='hidden-div')]                
-    )#,    html.Div(id='hidden-div', style={'display':'none'})
+    )

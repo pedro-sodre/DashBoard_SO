@@ -43,9 +43,16 @@ def _update_graph():
 
 
 def get_component(app):
-    @app.callback(Output('ram-usage', 'figure'), [Input('graph-update', 'n_intervals')])
+    @app.callback(Output('ram-usage', 'figure'), [Input('ram-update', 'n_intervals')])
     def update_graph(n_intervals):
         return _update_graph()
 
-    return html.Div([html.H1(f'Utilização de RAM em Gigabytes - Total instalado é {round(get_total_ram(), 2)}GB'),
+    return html.Div([
+        dcc.Interval(
+        id='ram-update',
+        interval=1000,  
+        max_intervals=-1,
+        n_intervals=0
+        ),
+        html.H1(f'Utilização de RAM em Gigabytes - Total instalado é {round(get_total_ram(), 2)}GB'),
                      dcc.Graph(id='ram-usage', animate=True)])

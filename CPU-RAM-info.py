@@ -9,6 +9,7 @@ import cpu_usage
 import disc_usage
 import process_table
 import static_info
+import terminal
 
 app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.layout = html.Div([
@@ -24,7 +25,8 @@ app.layout = html.Div([
         dbc.Col(ram_usage.get_component(app), width=7),
     ]),
     cpu_usage.get_component(app),
-    process_table.get_component(app)
+    process_table.get_component(app),
+    terminal.get_component(app)
 ])
 
 

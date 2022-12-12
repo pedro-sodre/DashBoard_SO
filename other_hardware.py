@@ -40,6 +40,7 @@
 #         print("No GPU found.")
 
 import psutil
+import subprocess
 
 battery = psutil.sensors_battery()
 users = psutil.users()
@@ -74,3 +75,18 @@ def get_battery_plugged():
     if battery == None:
         return ""
     return battery.power_plugged
+
+def get_motherboard():
+    command_data = subprocess.run(
+        "sudo dmidecode -t 2 | grep Product", shell=True, capture_output=True).stdout.decode().strip()
+
+    return command_data.replace("Product Name:", "")
+
+def get_gpu():
+    command_data = subprocess.run(
+        "lshw -numeric -C display | grep product | head -n 1", shell=True, capture_output=True).stdout.decode().strip()
+
+    command_data = command_data.split('[')
+    #command_data = command_data.replace('product:', '')
+    
+    return command_data[1].replace(']','')

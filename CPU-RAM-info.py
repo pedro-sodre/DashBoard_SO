@@ -2,14 +2,15 @@ import platform
 
 import dash
 from dash import dcc, html
+import dash_bootstrap_components as dbc
 
-from multiOS import *
 import ram_usage
 import cpu_usage
 import disc_usage
 import process_table
+import static_info
 
-app = dash.Dash(__name__)
+app = dash.Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.layout = html.Div([
     dcc.Interval(
         id='graph-update',  # ativa o update do gráfico
@@ -17,10 +18,12 @@ app.layout = html.Div([
         max_intervals=-1,
         n_intervals=0
     ),
-    html.H1(f"SO: {platform.system()}   processador: {get_processor_name()}"),
-    ram_usage.get_component(app),
+    static_info.get_component(app),
+    dbc.Row([
+        dbc.Col(disc_usage.get_component(app), width=5),
+        dbc.Col(ram_usage.get_component(app), width=7),
+    ]),
     cpu_usage.get_component(app),
-    disc_usage.get_component(app),
     process_table.get_component(app)
 ])
 

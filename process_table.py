@@ -1,13 +1,7 @@
-import os
 import pandas as pd
 import subprocess
-import time
 
-import dash
-from dash import Output, Input, State, dcc, html, ctx, dash_table
-import plotly.graph_objs as go
-import plotly.express as px
-from collections import deque
+from dash import Output, Input, dcc, html, dash_table
 
 
 def get_process_data():
@@ -56,6 +50,8 @@ def get_component(app):
                                   'id': 'TIME+', 'type': 'text'},
                                  {'name': 'COMMAND', 'id': 'COMMAND', 'type': 'text'}
                              ],
+                            #  filter_action='native',
+                            #  sort_action='native',
                              data=get_process_data().to_dict('records'),
                              style_data={
                                  'overflow': 'hidden',

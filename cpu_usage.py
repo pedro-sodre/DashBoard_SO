@@ -1,9 +1,7 @@
 import psutil
 
 import pandas as pd
-import plotly.graph_objs as go
-from dash import Output, Input, State, dcc, html, ctx
-import plotly.graph_objs as go
+from dash import Output, Input, dcc, html, ctx
 import plotly.express as px
 
 

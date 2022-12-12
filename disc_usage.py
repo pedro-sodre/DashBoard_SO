@@ -13,6 +13,7 @@ max_level = 3
 root = get_home_path()
 directories = pd.DataFrame()
 
+
 def make_disc_df(new_root, new_max_depth):
     global root
     global max_depth

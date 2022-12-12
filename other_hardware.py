@@ -90,3 +90,4 @@ def get_gpu():
     #command_data = command_data.replace('product:', '')
     
     return command_data[1].replace(']','')
+

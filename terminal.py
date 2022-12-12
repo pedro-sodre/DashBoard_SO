@@ -17,4 +17,6 @@ def get_component(app):
             return html.Div("Button clicked")
         return None
     
-    return html.Div([html.Button('>_', id='terminal-button', n_clicks=0)])
+    return html.Div([html.Button('>_', id='terminal-button', n_clicks=0), 
+                    html.Div(id='hidden-div')]                
+    )#,    html.Div(id='hidden-div', style={'display':'none'})

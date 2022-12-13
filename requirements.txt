@@ -1,0 +1,8 @@
+pandas==1.4.1
+dash==2.7.0
+dash-bootstrap-components==1.2.1
+dash-core-components==2.0.0
+dash-html-components==2.0.0
+dash-table==5.0.0
+psutil==5.9.4
+plotly==5.11.0

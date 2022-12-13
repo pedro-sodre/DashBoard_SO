@@ -49,10 +49,11 @@ def get_component(app):
 
     return html.Div([
         dcc.Interval(
-        id='ram-update',
-        interval=1000,  
-        max_intervals=-1,
-        n_intervals=0
+            id='ram-update',
+            interval=1000,
+            max_intervals=-1,
+            n_intervals=0
         ),
-        html.H1(f'Utilização de RAM em Gigabytes - Total instalado é {round(get_total_ram(), 2)}GB'),
-                     dcc.Graph(id='ram-usage', animate=True)])
+        html.H1(
+            f'Utilização de RAM em Gigabytes - Total instalado é {round(get_total_ram(), 2)}GB'),
+        dcc.Graph(id='ram-usage', animate=True)])

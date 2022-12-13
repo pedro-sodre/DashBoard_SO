@@ -1,7 +1,7 @@
 import psutil
 
 import pandas as pd
-from dash import Output, Input, dcc, html, ctx
+from dash import Output, Input, dcc, html
 import plotly.express as px
 
 
@@ -58,12 +58,12 @@ def get_component(app):
         return _update_graph(cpus)
 
     return html.Div([
-            dcc.Interval(
-        id='cpu-update',
-        interval=1000,  
-        max_intervals=-1,
-        n_intervals=0
-    ),
+        dcc.Interval(
+            id='cpu-update',
+            interval=1000,
+            max_intervals=-1,
+            n_intervals=0
+        ),
         html.H1('Utilização dos processadores (%)'),
         dcc.Checklist(id="cpu-checklist",
                       options=cpu_options, value=cpu_options),

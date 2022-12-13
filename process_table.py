@@ -25,11 +25,11 @@ def get_component(app):
 
     return html.Div([
         dcc.Interval(
-        id='process-update',  # ativa o update do gráfico
-        interval=3000,  # tempo de delay para cada update
-        max_intervals=-1,
-        n_intervals=0
-         ),
+            id='process-update',
+            interval=3000,
+            max_intervals=-1,
+            n_intervals=0
+        ),
         html.H1('Tabela de processos'),
         dcc.Dropdown(id='page-size-dropdown', value=10, clearable=False, style={'width': '35%'},
                      options=[10, 25, 50]),
@@ -56,8 +56,8 @@ def get_component(app):
                                   'id': 'TIME+', 'type': 'text'},
                                  {'name': 'COMMAND', 'id': 'COMMAND', 'type': 'text'}
                              ],
-                            #  filter_action='native',
-                            #  sort_action='native',
+                             #  filter_action='native',
+                             #  sort_action='native',
                              data=get_process_data().to_dict('records'),
                              style_data={
                                  'overflow': 'hidden',

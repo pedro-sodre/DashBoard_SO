@@ -1,7 +1,5 @@
-import platform
-
 import dash
-from dash import dcc, html
+from dash import html
 import dash_bootstrap_components as dbc
 
 import ram_usage
